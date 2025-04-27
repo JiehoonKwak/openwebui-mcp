@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "${OPENWEBUI_PORT:-3000}:8080"
+    volumes:
+      - openwebui_data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    networks:
+      - openwebui_network
+
+  mcp-proxy:
+    build:
+      context: ./mcp-proxy
+      dockerfile: Dockerfile
+    container_name: mcp-proxy
+    ports:
+      - "${MCP_PROXY_PORT:-8001}:8001"
+    volumes:
+      - openwebui_config:/app/config
+    restart: always
+    profiles:
+      - tools
+    networks:
+      - openwebui_network
+
+networks:
+  openwebui_network:
+    driver: bridge
+
+volumes:
+  openwebui_data:
+    external: true
+  openwebui_config:
+    external: true

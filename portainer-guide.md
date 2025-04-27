@@ -32,11 +32,7 @@ This guide provides step-by-step instructions for setting up OpenWebUI with MCP 
     },
     "filesystem": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem@latest",
-        "/app/backend/data"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@latest", "/app/backend/data"]
     },
     "think": {
       "command": "uvx",
@@ -64,25 +60,58 @@ This guide provides step-by-step instructions for setting up OpenWebUI with MCP 
 
 ## 5. Troubleshooting
 
-If you encounter issues:
+### Common Issues
 
-1. Check container logs:
+#### "mcpo: executable file not found in $PATH" Error
 
-   - Navigate to **Containers**.
-   - Click on the container name.
-   - Click on the **Logs** tab.
+If you encounter an error like:
+```
+Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "mcpo": executable file not found in $PATH: unknown
+```
 
-2. Verify volume mounts:
+This indicates that the MCP proxy container cannot find the mcpo executable. The Dockerfile has been updated to fix this issue by:
 
-   - Navigate to **Containers**.
-   - Click on the container name.
-   - Click on the **Inspect** tab.
-   - Look for the "Mounts" section to ensure volumes are correctly mounted.
+1. Installing mcpo using pip directly: `pip install --no-cache-dir mcpo`
+2. Running mcpo using Python's module system: `python -m mcpo`
 
-3. Check network connectivity:
-   - Navigate to **Networks**.
-   - Click on `openwebui_network`.
-   - Verify that both containers are connected to this network.
+If you still encounter this error:
+- Make sure you're using the latest version of the Dockerfile
+- Try rebuilding the image with `--no-cache` option in Portainer
+
+#### Other Common Issues
+
+1. **Services fail to start**:
+   - Check the logs for error messages
+   - Ensure the required directories exist and have appropriate permissions
+   - Verify that the ports are not already in use by other services
+
+2. **MCP proxy not working**:
+   - Verify that your `mcp-config.json` file is correctly formatted
+   - Check that the file is accessible to the container
+   - Review the MCP proxy logs for any error messages
+
+3. **Network connectivity issues**:
+   - Ensure that the Docker network is properly configured
+   - Check that the host.docker.internal extra host is correctly set up
+
+### Checking Container Logs
+
+1. Navigate to **Containers**.
+2. Click on the container name.
+3. Click on the **Logs** tab.
+
+### Verifying Volume Mounts
+
+1. Navigate to **Containers**.
+2. Click on the container name.
+3. Click on the **Inspect** tab.
+4. Look for the "Mounts" section to ensure volumes are correctly mounted.
+
+### Checking Network Connectivity
+
+1. Navigate to **Networks**.
+2. Click on `openwebui_network`.
+3. Verify that both containers are connected to this network.
 
 ## 6. Updating
 

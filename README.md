@@ -136,6 +136,24 @@ View logs in Portainer:
 
 ### Common Issues
 
+#### "mcpo: executable file not found in $PATH" Error
+
+If you encounter an error like:
+```
+Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "mcpo": executable file not found in $PATH: unknown
+```
+
+This indicates that the MCP proxy container cannot find the mcpo executable. The Dockerfile has been updated to fix this issue by:
+
+1. Installing mcpo using pip directly: `pip install --no-cache-dir mcpo`
+2. Running mcpo using Python's module system: `python -m mcpo`
+
+If you still encounter this error:
+- Make sure you're using the latest version of the Dockerfile
+- Try rebuilding the image with `--no-cache` option in Portainer
+
+#### Other Common Issues
+
 1. **Services fail to start**:
    - Check the logs for error messages
    - Ensure the required directories exist and have appropriate permissions
@@ -188,3 +206,7 @@ This project is distributed under the terms of the open-source license.
 - [OpenWebUI Documentation](https://docs.openwebui.com/)
 - [MCPO GitHub Repository](https://github.com/open-webui/mcpo)
 - [Portainer Documentation](https://docs.portainer.io/)
+
+## Additional Resources
+
+For more detailed step-by-step instructions specifically for Portainer, see the [portainer-guide.md](portainer-guide.md) file in this repository.

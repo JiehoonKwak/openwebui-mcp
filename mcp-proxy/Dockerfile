@@ -16,6 +16,11 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-RUN uv pip install --no-cache-dir mcpo
-CMD ["uvx", "mcpo", "--host", "0.0.0.0", "--port", "8001", "--config", "/app/config/mcp-config.json"]
+# Install mcpo using pip directly
+RUN pip install --no-cache-dir mcpo
+
+# Create config directory
+RUN mkdir -p /app/config
+
+# Run mcpo directly
+CMD ["python", "-m", "mcpo", "--host", "0.0.0.0", "--port", "8001", "--config", "/app/config/mcp-config.json"]
