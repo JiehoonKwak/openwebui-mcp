@@ -1,3 +1,4 @@
+
 services:
   openwebui:
     image: ghcr.io/open-webui/open-webui:main
@@ -17,7 +18,7 @@ services:
       dockerfile: Dockerfile # Explicitly names the Dockerfile
     container_name: mcp-proxy
     ports:
-      - "8000:8000"
+      - "8001:8001"
     volumes:
       - /volume1/docker/open-webui/mcp-config.json:/app/config/mcp-config.json
     restart: always

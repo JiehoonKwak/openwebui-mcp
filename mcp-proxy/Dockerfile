@@ -27,4 +27,4 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # It runs 'mcpo', listening on all interfaces (0.0.0.0) on port 8000.
 # It expects the configuration file to be available at '/app/config/mcp-config.json'.
 # This path matches the volume mount defined in docker-compose.yml.
-CMD ["mcpo", "--host", "0.0.0.0", "--port", "8000", "--config", "/app/config/mcp-config.json"]
+CMD ["mcpo", "--host", "0.0.0.0", "--port", "8001", "--config", "/app/config/mcp-config.json"]
