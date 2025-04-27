@@ -1,206 +1,190 @@
-# OpenWebUI MCP 데모
+# OpenWebUI with MCP for Synology NAS
 
-이 프로젝트는 OpenWebUI와 MCP(Model Context Protocol) 서버를 Docker Compose를 통해 통합한 데모입니다. 로컬 Ollama 모델과 OpenAI API를 함께 사용할 수 있는 편리한 웹 인터페이스를 제공합니다.
+This repository contains the necessary configuration files to deploy OpenWebUI with Model Context Protocol (MCP) support on a Synology NAS using Docker and Portainer.
 
-## 개요
+## Overview
 
-- **OpenWebUI**: Ollama 및 다양한 LLM API를 위한 웹 인터페이스
-- **MCP 프록시**: 도구 기능을 제공하는 Model Context Protocol 서버
+- **OpenWebUI**: A web interface for Ollama and various LLM APIs
+- **MCP Proxy**: A Model Context Protocol server that provides tool functionality
 
-## 시스템 요구사항
+## Prerequisites
 
-- Docker 및 Docker Compose
-- 노출된 포트: 3000(OpenWebUI), 8000(MCP 프록시)
-- Ollama가 설치되어 있고 11434 포트에서 실행 중이어야 함 (기본 설정)
+- Synology NAS with Docker and Portainer installed
+- Git installed on your local machine (for cloning this repository)
+- Basic knowledge of Docker and Portainer
 
-## 설치 및 실행 방법
+## Deployment Instructions
 
-### 자동 설치 (setup.sh 스크립트 사용)
+### 1. Clone and Prepare the Repository
 
-1. 저장소를 클론합니다:
+1. Clone this repository to your local machine:
+   ```bash
+   git clone https://github.com/yourusername/openwebui-mcp.git
+   cd openwebui-mcp
+   ```
 
-```bash
-git clone https://github.com/tsdata/openwebui-mcpo-demo.git
-cd openwebui-mcpo-demo
-```
+2. Customize the configuration files if needed:
+   - Modify `.env` to change ports or other settings
+   - Create your own `mcp-config.json` or use the sample provided
 
-2. 설치 스크립트에 실행 권한을 부여합니다:
+3. Commit any changes to your own Git repository if desired.
 
-```bash
-chmod +x setup.sh
-```
+### 2. Prepare Your Synology NAS Using Portainer
 
-3. 설치 스크립트를 실행합니다:
+1. Log in to your Portainer instance on your Synology NAS.
 
-```bash
-./setup.sh
-```
+2. Create the required directories using Portainer's File Browser:
+   - Navigate to **Volumes** in the left sidebar
+   - Click **Add volume**
+   - Create a volume named `openwebui_data` for OpenWebUI data
+   - Create a volume named `openwebui_config` for configuration files
 
-4. 메뉴에서 원하는 설정을 선택합니다:
-   - 1. 기본 설정 (호스트 Ollama + OpenAI API)
-   - 2. MCP 도구 서버 포함
-   - 3. GPU 지원 포함
-   - 4. 사용자 정의 설정
+3. Upload your `mcp-config.json` file:
+   - Navigate to the `openwebui_config` volume
+   - Use the **Upload** button to upload your `mcp-config.json` file
+   - Alternatively, you can use the **Create file** option to create it directly in Portainer
 
-### 수동 설치
+### 3. Deploy Using Portainer
 
-1. 필요한 디렉토리를 생성합니다:
+1. In Portainer, navigate to **Stacks** in the left sidebar.
 
-```bash
-mkdir -p mcp-proxy
-```
+2. Click **Add stack**.
 
-2. MCP 프록시용 Dockerfile을 생성합니다:
+3. Enter a name for your stack (e.g., `openwebui`).
 
-```bash
-cat > mcp-proxy/Dockerfile << 'EOF'
-FROM python:3.11-slim
-
-WORKDIR /app
-
-# 필요한 패키지 설치
-RUN pip install mcpo uv
-
-# 설정 디렉토리 생성
-RUN mkdir -p /app/config
-
-# MCP 설정 파일 복사
-COPY mcp-config.json /app/config/mcp-config.json
-
-# 설정 파일을 사용하여 실행
-CMD ["mcpo", "--host", "0.0.0.0", "--port", "8000", "--config", "/app/config/mcp-config.json"]
-EOF
-```
-
-3. MCP 설정 파일을 생성합니다:
-
-```bash
-cat > mcp-proxy/mcp-config.json << 'EOF'
-{
-  "mcpServers": {
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
-    },
-    "time": {
-      "command": "uvx",
-      "args": ["mcp-server-time", "--local-timezone=Asia/Seoul"]
-    }
-  }
-}
-EOF
-```
-
-4. Docker Compose를 사용하여 서비스를 시작합니다:
-   - 기본 설정:
-     ```bash
-     docker compose up -d
-     ```
-   - MCP 도구 서버 포함:
-     ```bash
-     docker compose --profile tools up -d --build
+4. For the build method, select one of the following options:
+   
+   **Option 1: Web editor**
+   - In the **Web editor** tab, paste the contents of the `docker-compose.yml` file from this repository.
+   - Adjust the volume paths if you're using named volumes:
+     ```yaml
+     volumes:
+       - openwebui_data:/app/backend/data
+       # Instead of:
+       # - /volume1/docker/openwebui/data:/app/backend/data
      ```
 
-## 설정 옵션
+   **Option 2: Git repository**
+   - In the **Repository** tab, enter your Git repository URL
+   - Specify the reference name (branch, tag, or commit)
+   - Set the compose path to `docker-compose.yml`
 
-### 기본 설정
+5. Click **Deploy the stack**.
 
-- OpenWebUI 웹 인터페이스만 실행합니다.
-- 호스트의 Ollama와 연결됩니다.
+6. Wait for the deployment to complete.
 
-### MCP 도구 서버 포함
+### 4. Verify the Deployment
 
-- 기본 설정에 MCP 프록시 서버를 추가합니다.
-- 추가 도구 기능(fetch, time 등)을 제공합니다.
+1. Access OpenWebUI at `http://your-nas-ip:3000`
 
-### GPU 지원 포함
+2. The MCP proxy will be available at `http://your-nas-ip:8001`
 
-- CUDA 지원이 포함된 OpenWebUI 이미지를 사용합니다.
-- GPU 가속 처리가 가능합니다.
+## Configuration
 
-### 사용자 정의 설정
+### Directory Structure
 
-- OpenAI API 키, Ollama URL 등을 사용자가 직접 구성할 수 있습니다.
-- MCP 도구 서버 및 GPU 지원 옵션을 선택적으로 적용할 수 있습니다.
+When using direct path mapping (as in the default docker-compose.yml):
 
-## 사용 방법
-
-1. OpenWebUI 웹 인터페이스에 접속합니다: http://localhost:3000
-2. MCP 프록시 API 문서 확인(도구 서버 활성화 시): http://localhost:8000/docs
-
-### MCP 서버 확장
-
-MCP 프록시에 새로운 도구를 추가하려면:
-
-1. `mcp-proxy/mcp-config.json` 파일을 수정합니다:
-
-```json
-{
-  "mcpServers": {
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch", "--ignore-robots-txt"]
-    },
-    "time": {
-      "command": "uvx",
-      "args": ["mcp-server-time", "--local-timezone=Asia/Seoul"]
-    },
-    "새로운도구": {
-      "command": "uvx",
-      "args": ["mcp-server-새로운도구"]
-    }
-  }
-}
+```
+/volume1/docker/openwebui/
+├── data/           # OpenWebUI persistent data
+├── config/         # Configuration files
+│   └── mcp-config.json  # Your custom MCP configuration file
 ```
 
-2. MCP 프록시 서버를 재시작합니다:
+### Environment Variables
 
-```bash
-docker compose --profile tools restart mcp-proxy
+The following environment variables can be configured in the `.env` file:
+
+- `OPENWEBUI_IMAGE_TAG`: The tag of the OpenWebUI image to use (default: `main`)
+- `OPENWEBUI_PORT`: The port to expose OpenWebUI on (default: `3000`)
+- `MCP_PROXY_PORT`: The port to expose the MCP proxy on (default: `8001`)
+- `COMPOSE_PROFILES`: The Docker Compose profiles to enable (default: `tools`)
+
+### MCP Configuration
+
+A sample MCP configuration file is provided at `mcp-proxy/mcp-config.json.sample`. You can use this as a starting point for your own configuration.
+
+## Maintenance
+
+### Updating
+
+To update the containers:
+
+1. In Portainer, navigate to your stack.
+2. Click **Editor**.
+3. Make any necessary changes to the configuration.
+4. Click **Update the stack**.
+
+### Backing Up
+
+Regularly back up your OpenWebUI data:
+
+1. In Portainer, navigate to **Volumes**.
+2. Select the volume containing your OpenWebUI data.
+3. Use the **Backup** option if available, or export the data using the file browser.
+
+### Logs
+
+View logs in Portainer:
+
+1. Navigate to **Containers** in the left sidebar.
+2. Click on the container name (e.g., `open-webui` or `mcp-proxy`).
+3. Click on the **Logs** tab to view the container logs.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Services fail to start**:
+   - Check the logs for error messages
+   - Ensure the required directories exist and have appropriate permissions
+   - Verify that the ports are not already in use by other services
+
+2. **MCP proxy not working**:
+   - Verify that your `mcp-config.json` file is correctly formatted
+   - Check that the file is accessible to the container
+   - Review the MCP proxy logs for any error messages
+
+3. **Network connectivity issues**:
+   - Ensure that the Docker network is properly configured
+   - Check that the host.docker.internal extra host is correctly set up
+
+## Alternative Volume Configuration
+
+If you prefer to use named volumes instead of direct path mapping, modify the docker-compose.yml file as follows:
+
+```yaml
+version: '3.8'
+
+services:
+  openwebui:
+    # ... other settings ...
+    volumes:
+      - openwebui_data:/app/backend/data
+    # ... other settings ...
+
+  mcp-proxy:
+    # ... other settings ...
+    volumes:
+      - openwebui_config:/app/config
+    # ... other settings ...
+
+volumes:
+  openwebui_data:
+    external: true
+  openwebui_config:
+    external: true
 ```
 
-## 문제 해결
+With this configuration, you'll need to create the named volumes in Portainer before deploying the stack.
 
-### Ollama 연결 문제
+## License
 
-- Ollama가 호스트에서 실행 중인지 확인하세요.
-- 기본 포트(11434)가 사용 가능한지 확인하세요.
-- Docker 네트워크 설정을 확인하세요.
+This project is distributed under the terms of the open-source license.
 
-### MCP 프록시 서버 문제
+## References
 
-- 로그를 확인하세요: `docker logs mcp-proxy`
-- 필요한 Python 패키지가 설치되어 있는지 확인하세요.
-
-## 서비스 관리
-
-### 서비스 중지
-
-```bash
-docker compose down
-```
-
-### 로그 확인
-
-- OpenWebUI: `docker logs open-webui`
-- MCP 프록시: `docker logs mcp-proxy`
-
-### 컨테이너 재시작
-
-```bash
-docker compose restart
-```
-
-## 데이터 관리
-
-OpenWebUI의 데이터는 Docker 볼륨(`open-webui-data`)에 저장됩니다. 데이터를 백업하려면:
-
-```bash
-docker volume inspect open-webui-data  # 볼륨 위치 확인
-# 또는
-docker run --rm -v open-webui-data:/data -v $(pwd):/backup alpine tar -czf /backup/open-webui-backup.tar.gz /data
-```
-
-## 라이센스
-
-이 프로젝트는 오픈 소스 라이센스하에 배포됩니다. 자세한 내용은 라이센스 파일을 참조하세요.
+- [OpenWebUI Documentation](https://docs.openwebui.com/)
+- [MCPO GitHub Repository](https://github.com/open-webui/mcpo)
+- [Portainer Documentation](https://docs.portainer.io/)
