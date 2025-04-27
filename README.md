@@ -69,9 +69,14 @@ This repository contains the necessary configuration files to deploy OpenWebUI w
    - Specify the reference name (branch, tag, or commit)
    - Set the compose path to `docker-compose.yml`
 
-5. Click **Deploy the stack**.
+5. **Important**: Make sure the `command` line for the mcp-proxy service is included:
+   ```yaml
+   command: python -m mcpo --host 0.0.0.0 --port 8001 --config /app/config/mcp-config.json
+   ```
 
-6. Wait for the deployment to complete.
+6. Click **Deploy the stack**.
+
+7. Wait for the deployment to complete.
 
 ### 4. Verify the Deployment
 
@@ -143,14 +148,27 @@ If you encounter an error like:
 Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "mcpo": executable file not found in $PATH: unknown
 ```
 
-This indicates that the MCP proxy container cannot find the mcpo executable. The Dockerfile has been updated to fix this issue by:
+This indicates that the MCP proxy container cannot find the mcpo executable. We've addressed this issue in two ways:
 
-1. Installing mcpo using pip directly: `pip install --no-cache-dir mcpo`
-2. Running mcpo using Python's module system: `python -m mcpo`
+1. **Updated Dockerfile**: The Dockerfile now installs mcpo using pip directly and runs it using Python's module system.
+2. **Explicit Command**: The docker-compose.yml file now includes an explicit command to run mcpo using Python's module system.
 
 If you still encounter this error:
-- Make sure you're using the latest version of the Dockerfile
-- Try rebuilding the image with `--no-cache` option in Portainer
+
+1. Make sure the `command` line is included in your docker-compose.yml file:
+   ```yaml
+   command: python -m mcpo --host 0.0.0.0 --port 8001 --config /app/config/mcp-config.json
+   ```
+
+2. Force a rebuild of the image by adding `no_cache: true` to the build section:
+   ```yaml
+   build:
+     context: ./mcp-proxy
+     dockerfile: Dockerfile
+     no_cache: true  # Add this line to force a rebuild
+   ```
+
+3. If using a Git repository, make sure you're using the latest commit.
 
 #### Other Common Issues
 
@@ -184,6 +202,7 @@ services:
 
   mcp-proxy:
     # ... other settings ...
+    command: python -m mcpo --host 0.0.0.0 --port 8001 --config /app/config/mcp-config.json
     volumes:
       - openwebui_config:/app/config
     # ... other settings ...

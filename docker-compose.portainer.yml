@@ -18,7 +18,9 @@ services:
     build:
       context: ./mcp-proxy
       dockerfile: Dockerfile
+      no_cache: true  # Force a rebuild of the image
     container_name: mcp-proxy
+    command: python -m mcpo --host 0.0.0.0 --port 8001 --config /app/config/mcp-config.json
     ports:
       - "${MCP_PROXY_PORT:-8001}:8001"
     volumes:

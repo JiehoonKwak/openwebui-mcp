@@ -50,15 +50,35 @@ This guide provides step-by-step instructions for setting up OpenWebUI with MCP 
 2. Click **Add stack**.
 3. Enter a name for your stack (e.g., `openwebui`).
 4. In the **Web editor** tab, paste the contents of the `docker-compose.portainer.yml` file.
-5. Click **Deploy the stack**.
+5. **Important**: Make sure the `command` line for the mcp-proxy service is included:
+   ```yaml
+   command: python -m mcpo --host 0.0.0.0 --port 8001 --config /app/config/mcp-config.json
+   ```
+6. Click **Deploy the stack**.
 
-## 4. Verify the Deployment
+## 4. Forcing a Rebuild of the Image
+
+If you're still encountering issues with the mcp-proxy container, you may need to force a rebuild of the image:
+
+1. Navigate to **Stacks** in the left sidebar.
+2. Click on your stack name.
+3. Click **Editor**.
+4. Add the following line to the `build` section of the mcp-proxy service:
+   ```yaml
+   build:
+     context: ./mcp-proxy
+     dockerfile: Dockerfile
+     no_cache: true  # Add this line to force a rebuild
+   ```
+5. Click **Update the stack**.
+
+## 5. Verify the Deployment
 
 1. Navigate to **Containers** to see if both containers are running.
 2. Access OpenWebUI at `http://your-nas-ip:3000`.
 3. The MCP proxy will be available at `http://your-nas-ip:8001`.
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
 ### Common Issues
 
@@ -69,14 +89,21 @@ If you encounter an error like:
 Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "mcpo": executable file not found in $PATH: unknown
 ```
 
-This indicates that the MCP proxy container cannot find the mcpo executable. The Dockerfile has been updated to fix this issue by:
+This indicates that the MCP proxy container cannot find the mcpo executable. We've addressed this issue in two ways:
 
-1. Installing mcpo using pip directly: `pip install --no-cache-dir mcpo`
-2. Running mcpo using Python's module system: `python -m mcpo`
+1. **Updated Dockerfile**: The Dockerfile now installs mcpo using pip directly and runs it using Python's module system.
+2. **Explicit Command**: The docker-compose.yml file now includes an explicit command to run mcpo using Python's module system.
 
 If you still encounter this error:
-- Make sure you're using the latest version of the Dockerfile
-- Try rebuilding the image with `--no-cache` option in Portainer
+
+1. Make sure the `command` line is included in your docker-compose.yml file:
+   ```yaml
+   command: python -m mcpo --host 0.0.0.0 --port 8001 --config /app/config/mcp-config.json
+   ```
+
+2. Force a rebuild of the image by adding `no_cache: true` to the build section.
+
+3. If using a Git repository, make sure you're using the latest commit.
 
 #### Other Common Issues
 
@@ -113,7 +140,7 @@ If you still encounter this error:
 2. Click on `openwebui_network`.
 3. Verify that both containers are connected to this network.
 
-## 6. Updating
+## 7. Updating
 
 To update the stack:
 
@@ -123,7 +150,7 @@ To update the stack:
 4. Make any necessary changes.
 5. Click **Update the stack**.
 
-## 7. Backing Up
+## 8. Backing Up
 
 To back up your data:
 
