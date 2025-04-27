@@ -1,31 +1,33 @@
+version: '3.8'
+
 services:
   openwebui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:${OPENWEBUI_IMAGE_TAG:-main}
     container_name: open-webui
     ports:
-      - "3000:8080"
-    environment:
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - "${OPENWEBUI_PORT:-3000}:8080"
     volumes:
-      - open-webui-data:/app/backend/data
+      - /volume1/docker/open-webui/data:/app/backend/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
-
-  # Optional: MCP Proxy Server for tools
+    networks:
+      - qdrant_n8n_network
   mcp-proxy:
     build:
       context: ./mcp-proxy
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile # Explicitly names the Dockerfile
     container_name: mcp-proxy
     ports:
-      - "8000:8000"
+      - "${MCP_PROXY_PORT:-8000}:8000"
     volumes:
-      - ./mcp-proxy/mcp-config.json:/app/config/mcp-config.json
+      - /volume1/docker/open-webui/mcp-config.json:/app/config/mcp-config.json:ro
     restart: always
     profiles:
       - tools
+    networks:
+      - qdrant_n8n_network
 
-volumes:
-  open-webui-data:
-    name: open-webui-data
+networks:
+  qdrant_n8n_network:
+    driver: bridge
