@@ -21,7 +21,7 @@ RUN apt-get update && \
 # Install Python dependencies using uv (after system dependencies are set)
 # Using --no-cache-dir helps keep the layer smaller
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-RUN uv pip install --no-cache-dir mcpo
+
 
 # The CMD instruction specifies the command to run when the container starts.
 # It runs 'mcpo', listening on all interfaces (0.0.0.0) on port 8000.
