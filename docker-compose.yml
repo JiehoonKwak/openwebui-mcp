@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   openwebui:
-    image: ghcr.io/open-webui/open-webui:${OPENWEBUI_IMAGE_TAG:-main}
+    image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     ports:
-      - "${OPENWEBUI_PORT:-3000}:8080"
+      - "3000:8080"
     volumes:
       - /volume1/docker/open-webui/data:/app/backend/data
     extra_hosts:
@@ -19,9 +19,9 @@ services:
       dockerfile: Dockerfile # Explicitly names the Dockerfile
     container_name: mcp-proxy
     ports:
-      - "${MCP_PROXY_PORT:-8000}:8000"
+      - "8000:8000"
     volumes:
-      - /volume1/docker/open-webui/mcp-config.json:/app/config/mcp-config.json:ro
+      - /volume1/docker/open-webui/mcp-config.json:/app/config/mcp-config.json
     restart: always
     profiles:
       - tools
